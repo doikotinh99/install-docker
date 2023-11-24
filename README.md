@@ -85,3 +85,141 @@ docker attach idContainer
 ```
 docker stop idContainer
 ```
+
+- đặt tên cho container
+```
+docker run -it --name "name_container" -h hostname ubuntu:22.04
+```
+
+- xoá container
+
+```
+docker rm idContainer
+```
+
+- nếu container đang hoạt động mà vẫn muốn xoá thì thêm -f
+
+```
+docker rm -f idContainer
+```
+
+# Volume
+
+## Ánh xạ thư mục máy host vào container
+```
+docker run -it -v /opt/lampp/htdocs/www/docker:/home/docker imageId
+```
+
+- /opt/lampp/htdocs/www/docker : đây là tư mục của máy host muốn ánh xạ
+- /home/docker : đây là thư mục của container
+- imageId : id của image muốn tại container
+
+## chia sẻ dữ liệu giữa các container
+```
+docker run -it --volumes-from containerId imageId
+```
+- containerId là id của container hoặc name của container
+- imageId là id của image muốn tạo ra container
+
+## Tạo volume
+
+- kiểm tra các volume đang có.
+```
+docker volume ls
+```
+
+- tạo volume
+```
+docker volume create nameVolume
+```
+
+- kiểm tra thông tin của volume
+```
+docker volume  inspect nameVolume
+```
+
+- xoá volume
+```
+docker volume rm www
+```
+
+## gán volume vào 1 container
+```
+docker run -it --mount source=nameVolume,target=/home/www imageID
+```
+- nameVolume là tên của volume
+- /home/www là thư mục của container được volume ánh xạ vào
+- imageID là id của image muốn tạo ra container
+## tạo volume gắn với thư mục của máy host
+```
+docker volume create --opt device=/opt/lampp/htdocs/www --opt type=none --opt o=bind www
+```
+- /opt/lampp/htdocs/www dường dẫn file của máy host
+- www là tên của volume
+
+- gắn volume vừa tạo vào container
+```
+docker run -it -v www:/home/www imageId
+```
+# Network
+
+## danh sách docker
+```
+docker network ls
+```
+
+## kiểm tra thông tin của network
+
+```
+docker network inspect bridge
+```
+
+## Ánh xạ cổng từ máy host vào container
+
+```
+docker run -it -p 8888:80 busybox
+```
+
+- 8888 là cổng của máy host (127.0.0.1:8888)
+- 80 là cổng của container
+- busybox là image chưa các câu lệnh của linux
+
+## Tạo network
+```
+docker network create --driver bridge network1
+```
+- bridge là loại mạng
+- network1 là tên mạng muốn tạo ra
+
+## Xoá network
+```
+docker network rm network1
+```
+- network1 là tên mạng muốn xoá
+
+## kết nối một container đang chạy vào network
+```
+docker network connect nameNetwork nameContainer
+```
+
+# Cài đặt php-fpm
+
+```
+docker pull php:8.1-fpm
+docker run -d --name c-php -h php -v /opt/lampp/htdocs/www:/home/www --network network1 b2
+docker exec -it c-php bash
+```
+# Cài đặt httpd
+
+```
+
+```
+
+## config httpd.conf
+
+```
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
+
+AddHandler "proxy:fcgi://c-php:9000" .php
+```
